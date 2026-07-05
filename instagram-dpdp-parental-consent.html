@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Instagram India — Parental Consent (DPDP)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            pearl: {
+              50: '#FAFAFA',
+              100: '#F5F5F7',
+              200: '#E8E8ED',
+              300: '#D2D2D7',
+              900: '#1D1D1F',
+            },
+            ig: {
+              blue: '#0095F6',
+              purple: '#833AB4',
+              pink: '#E1306C',
+              orange: '#F77737',
+            }
+          },
+          fontFamily: {
+            sans: ['-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'],
+          },
+          boxShadow: {
+            pearl: '0 2px 16px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04)',
+            pearl-lg: '0 8px 32px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04)',
+            inner-soft: 'inset 0 1px 2px rgba(0, 0, 0, 0.04)',
+          },
+          animation: {
+            'fade-in': 'fadeIn 0.6s ease-out forwards',
+            'fade-in-up': 'fadeInUp 0.7s ease-out forwards',
+            'scale-in': 'scaleIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards',
+            'check-draw': 'checkDraw 0.6s ease-out 0.3s forwards',
+          },
+          keyframes: {
+            fadeIn: {
+              '0%': { opacity: '0' },
+              '100%': { opacity: '1' },
+            },
+            fadeInUp: {
+              '0%': { opacity: '0', transform: 'translateY(12px)' },
+              '100%': { opacity: '1', transform: 'translateY(0)' },
+            },
+            scaleIn: {
+              '0%': { opacity: '0', transform: 'scale(0.5)' },
+              '100%': { opacity: '1', transform: 'scale(1)' },
+            },
+            checkDraw: {
+              '0%': { strokeDashoffset: '48' },
+              '100%': { strokeDashoffset: '0' },
+            },
+          },
+        },
+      },
+    };
+  </script>
+  <style>
+    * { -webkit-tap-highlight-color: transparent; }
+
+    .screen {
+      display: none;
+      opacity: 0;
+      transform: translateY(8px);
+      transition: opacity 0.35s ease, transform 0.35s ease;
+    }
+
+    .screen.active {
+      display: flex;
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .screen.leaving {
+      display: flex;
+      opacity: 0;
+      transform: translateY(-6px);
+    }
+
+    .ig-gradient {
+      background: linear-gradient(135deg, #833AB4 0%, #E1306C 50%, #F77737 100%);
+    }
+
+    .ig-gradient-text {
+      background: linear-gradient(135deg, #833AB4, #E1306C, #F77737);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #0095F6 0%, #0064E0 100%);
+      transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(0, 149, 246, 0.35);
+    }
+
+    .btn-primary:active:not(:disabled) {
+      transform: translateY(0);
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .toggle-track {
+      transition: background-color 0.25s ease;
+    }
+
+    .toggle-thumb {
+      transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .toggle-input:checked + .toggle-track {
+      background: linear-gradient(135deg, #0095F6, #0064E0);
+    }
+
+    .toggle-input:checked + .toggle-track .toggle-thumb {
+      transform: translateX(20px);
+    }
+
+    .phone-input:focus {
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(0, 149, 246, 0.2);
+    }
+
+    .phone-input.error {
+      box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2);
+      border-color: #EF4444;
+    }
+
+    .success-check svg path {
+      stroke-dasharray: 48;
+      stroke-dashoffset: 48;
+    }
+
+    .success-check.animate svg path {
+      animation: checkDraw 0.6s ease-out 0.4s forwards;
+    }
+
+    @keyframes checkDraw {
+      to { stroke-dashoffset: 0; }
+    }
+
+    .device-notch {
+      background: #1D1D1F;
+    }
+
+    .scrollbar-hide::-webkit-scrollbar { display: none; }
+    .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+  </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-pearl-100 via-pearl-50 to-pearl-200 font-sans antialiased flex items-center justify-center p-4 sm:p-8">
+
+  <!-- Device Frame -->
+  <div class="relative w-full max-w-[390px]" role="application" aria-label="Instagram India parental consent flow">
+
+    <!-- Outer glow -->
+    <div class="absolute -inset-3 rounded-[3rem] bg-gradient-to-br from-ig-purple/10 via-ig-pink/10 to-ig-orange/10 blur-xl pointer-events-none"></div>
+
+    <!-- Phone shell -->
+    <div class="relative bg-pearl-900 rounded-[2.75rem] p-3 shadow-pearl-lg">
+
+      <!-- Dynamic Island / Notch -->
+      <div class="absolute top-5 left-1/2 -translate-x-1/2 z-30 w-[120px] h-[34px] device-notch rounded-full flex items-center justify-center gap-2">
+        <div class="w-2 h-2 rounded-full bg-pearl-900/60"></div>
+        <div class="w-14 h-4 rounded-full bg-black/40"></div>
+      </div>
+
+      <!-- Screen bezel -->
+      <div class="relative bg-pearl-50 rounded-[2.25rem] overflow-hidden shadow-inner-soft" style="height: 780px;">
+
+        <!-- Status bar -->
+        <div class="relative z-20 flex items-center justify-between px-7 pt-3 pb-1 text-[11px] font-semibold text-pearl-900">
+          <span>9:41</span>
+          <div class="flex items-center gap-1.5">
+            <i data-lucide="signal" class="w-3.5 h-3.5"></i>
+            <i data-lucide="wifi" class="w-3.5 h-3.5"></i>
+            <i data-lucide="battery-full" class="w-4 h-4"></i>
+          </div>
+        </div>
+
+        <!-- App content area -->
+        <div id="app-container" class="relative h-[calc(100%-28px)] overflow-hidden">
+
+          <!-- ═══════════════════════════════════════════
+               SCREEN 1: Teen Onboarding
+               ═══════════════════════════════════════════ -->
+          <section id="screen-1" class="screen active flex-col h-full scrollbar-hide overflow-y-auto" aria-label="Teen onboarding">
+
+            <!-- Header bar -->
+            <header class="flex items-center justify-between px-5 pt-2 pb-4 border-b border-pearl-200/80 bg-pearl-50/90 backdrop-blur-sm sticky top-0 z-10">
+              <button type="button" class="p-1 text-pearl-900/70" aria-label="Go back">
+                <i data-lucide="chevron-left" class="w-6 h-6"></i>
+              </button>
+              <div class="flex items-center gap-1.5">
+                <div class="w-6 h-6 rounded-lg ig-gradient flex items-center justify-center">
+                  <i data-lucide="camera" class="w-3.5 h-3.5 text-white"></i>
+                </div>
+                <span class="text-sm font-semibold text-pearl-900 tracking-tight">Instagram</span>
+              </div>
+              <div class="w-8"></div>
+            </header>
+
+            <div class="flex-1 px-6 pt-8 pb-6 flex flex-col">
+
+              <!-- Shield icon -->
+              <div class="flex justify-center mb-6">
+                <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-ig-blue/10 to-ig-purple/10 flex items-center justify-center shadow-pearl">
+                  <i data-lucide="shield-check" class="w-8 h-8 text-ig-blue"></i>
+                </div>
+              </div>
+
+              <h1 class="text-[22px] font-bold text-pearl-900 text-center leading-tight tracking-tight mb-3">
+                Help us keep your account safe
+              </h1>
+
+              <p class="text-[15px] text-pearl-900/60 text-center leading-relaxed mb-2 px-1">
+                Under India's <span class="font-medium text-pearl-900/80">Digital Personal Data Protection (DPDP) Act, 2023</span>, accounts for users under 18 require a quick parental verification before you can continue.
+              </p>
+
+              <p class="text-[13px] text-pearl-900/45 text-center leading-relaxed mb-8">
+                We'll send a secure consent request to your parent or guardian via WhatsApp.
+              </p>
+
+              <!-- Info card -->
+              <div class="bg-white rounded-2xl p-4 shadow-pearl border border-pearl-200/60 mb-6 flex items-start gap-3">
+                <div class="w-9 h-9 rounded-full bg-pearl-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <i data-lucide="user" class="w-4 h-4 text-pearl-900/50"></i>
+                </div>
+                <div>
+                  <p class="text-sm font-semibold text-pearl-900">Creating account as</p>
+                  <p class="text-sm text-pearl-900/55">Age 15 · India</p>
+                </div>
+              </div>
+
+              <!-- Phone input -->
+              <label for="parent-phone" class="block text-xs font-semibold text-pearl-900/70 uppercase tracking-wider mb-2">
+                Parent / Guardian Contact
+              </label>
+
+              <div id="phone-wrapper" class="flex items-center bg-white border border-pearl-200 rounded-2xl shadow-pearl overflow-hidden mb-1 transition-all duration-200">
+                <div class="flex items-center gap-2 px-4 py-3.5 border-r border-pearl-200 bg-pearl-50/80 flex-shrink-0">
+                  <span class="text-lg leading-none">🇮🇳</span>
+                  <span class="text-[15px] font-semibold text-pearl-900">+91</span>
+                </div>
+                <input
+                  type="tel"
+                  id="parent-phone"
+                  class="phone-input flex-1 px-4 py-3.5 text-[15px] text-pearl-900 placeholder:text-pearl-900/30 bg-transparent border-none"
+                  placeholder="Parent's Mobile Number"
+                  inputmode="numeric"
+                  maxlength="10"
+                  autocomplete="tel-national"
+                  aria-describedby="phone-error"
+                />
+              </div>
+
+              <p id="phone-error" class="text-xs text-red-500 min-h-[18px] mb-6 px-1" role="alert"></p>
+
+              <!-- WhatsApp info -->
+              <div class="flex items-center gap-2.5 px-1 mb-auto">
+                <div class="w-8 h-8 rounded-full bg-[#25D366]/10 flex items-center justify-center flex-shrink-0">
+                  <svg viewBox="0 0 24 24" class="w-4 h-4 fill-[#25D366]" aria-hidden="true">
+                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.435 9.884-9.881 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                  </svg>
+                </div>
+                <p class="text-xs text-pearl-900/50 leading-snug">
+                  A secure link will be sent via WhatsApp. Your parent can review and approve permissions.
+                </p>
+              </div>
+
+              <!-- CTA -->
+              <button
+                type="button"
+                id="btn-send-whatsapp"
+                disabled
+                class="btn-primary w-full py-4 rounded-2xl text-white font-semibold text-[15px] flex items-center justify-center gap-2.5 mt-6 shadow-pearl"
+              >
+                <svg viewBox="0 0 24 24" class="w-5 h-5 fill-white" aria-hidden="true">
+                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.435 9.884-9.881 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                </svg>
+                Send Consent Request via WhatsApp
+              </button>
+
+              <p class="text-[11px] text-pearl-900/35 text-center mt-4 leading-relaxed">
+                By continuing, you confirm this number belongs to your parent or legal guardian.
+              </p>
+            </div>
+          </section>
+
+          <!-- ═══════════════════════════════════════════
+               SCREEN 2: Parent Dashboard
+               ═══════════════════════════════════════════ -->
+          <section id="screen-2" class="screen flex-col h-full scrollbar-hide overflow-y-auto" aria-label="Parent consent dashboard">
+
+            <!-- WhatsApp-style header -->
+            <header class="bg-[#075E54] px-4 pt-2 pb-3 sticky top-0 z-10">
+              <div class="flex items-center gap-3">
+                <button type="button" class="p-1 text-white/80" aria-label="Go back">
+                  <i data-lucide="chevron-left" class="w-5 h-5"></i>
+                </button>
+                <div class="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center">
+                  <div class="w-7 h-7 rounded-lg ig-gradient flex items-center justify-center">
+                    <i data-lucide="camera" class="w-3.5 h-3.5 text-white"></i>
+                  </div>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <p class="text-white text-sm font-semibold truncate">Instagram India</p>
+                  <p class="text-white/60 text-xs">Secure verification link</p>
+                </div>
+                <i data-lucide="shield" class="w-5 h-5 text-white/70"></i>
+              </div>
+            </header>
+
+            <div class="flex-1 px-5 pt-6 pb-6 flex flex-col bg-pearl-50">
+
+              <!-- DPDP badge -->
+              <div class="flex justify-center mb-5">
+                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white border border-pearl-200 shadow-pearl text-[11px] font-semibold text-pearl-900/70 uppercase tracking-wide">
+                  <i data-lucide="scale" class="w-3.5 h-3.5 text-ig-blue"></i>
+                  DPDP Act 2023 Compliant
+                </span>
+              </div>
+
+              <h1 class="text-[19px] font-bold text-pearl-900 text-center leading-snug tracking-tight mb-2 px-1">
+                Parental Consent &amp; Privacy Control — Instagram India
+              </h1>
+
+              <!-- Child summary card -->
+              <div class="bg-white rounded-2xl p-4 shadow-pearl border border-pearl-200/60 mt-4 mb-6">
+                <div class="flex items-center gap-3 mb-3">
+                  <div class="w-12 h-12 rounded-full bg-gradient-to-br from-ig-purple/20 to-ig-pink/20 flex items-center justify-center text-lg font-bold text-ig-purple">
+                    R
+                  </div>
+                  <div>
+                    <p class="text-[15px] font-semibold text-pearl-900">Reviewing data permissions for Rohan, 15</p>
+                    <p class="text-xs text-pearl-900/50 mt-0.5">Account pending parental approval</p>
+                  </div>
+                </div>
+                <div class="flex items-center gap-2 pt-3 border-t border-pearl-100">
+                  <i data-lucide="lock" class="w-3.5 h-3.5 text-ig-blue"></i>
+                  <p class="text-xs text-pearl-900/55">End-to-end encrypted verification · Valid for 24 hours</p>
+                </div>
+              </div>
+
+              <p class="text-xs font-semibold text-pearl-900/50 uppercase tracking-wider mb-3 px-1">
+                Data Processing Consents
+              </p>
+
+              <!-- Toggle 1 -->
+              <div class="bg-white rounded-2xl p-4 shadow-pearl border border-pearl-200/60 mb-3">
+                <div class="flex items-start justify-between gap-3">
+                  <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-2 mb-1">
+                      <i data-lucide="sparkles" class="w-4 h-4 text-ig-purple flex-shrink-0"></i>
+                      <p class="text-[14px] font-semibold text-pearl-900 leading-snug">Allow Algorithmic Content Personalization</p>
+                    </div>
+                    <p class="text-xs text-pearl-900/50 leading-relaxed pl-6">
+                      Permits Instagram to tailor feed, Reels, and Explore based on your child's activity patterns.
+                    </p>
+                  </div>
+                  <label class="relative inline-flex items-center cursor-pointer flex-shrink-0 mt-0.5">
+                    <input type="checkbox" class="toggle-input sr-only consent-toggle" id="toggle-personalization" checked />
+                    <div class="toggle-track w-11 h-6 bg-pearl-200 rounded-full relative">
+                      <div class="toggle-thumb absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-md"></div>
+                    </div>
+                  </label>
+                </div>
+              </div>
+
+              <!-- Toggle 2 -->
+              <div class="bg-white rounded-2xl p-4 shadow-pearl border border-pearl-200/60 mb-3">
+                <div class="flex items-start justify-between gap-3">
+                  <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-2 mb-1">
+                      <i data-lucide="bar-chart-2" class="w-4 h-4 text-ig-blue flex-shrink-0"></i>
+                      <p class="text-[14px] font-semibold text-pearl-900 leading-snug">Allow Core Data &amp; Usage Analytics Sharing</p>
+                    </div>
+                    <p class="text-xs text-pearl-900/50 leading-relaxed pl-6">
+                      Enables collection of anonymized usage metrics to improve platform safety and performance.
+                    </p>
+                  </div>
+                  <label class="relative inline-flex items-center cursor-pointer flex-shrink-0 mt-0.5">
+                    <input type="checkbox" class="toggle-input sr-only consent-toggle" id="toggle-analytics" checked />
+                    <div class="toggle-track w-11 h-6 bg-pearl-200 rounded-full relative">
+                      <div class="toggle-thumb absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-md"></div>
+                    </div>
+                  </label>
+                </div>
+              </div>
+
+              <!-- Toggle 3 -->
+              <div class="bg-white rounded-2xl p-4 shadow-pearl border border-pearl-200/60 mb-6">
+                <div class="flex items-start justify-between gap-3">
+                  <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-2 mb-1">
+                      <i data-lucide="map-pin" class="w-4 h-4 text-ig-orange flex-shrink-0"></i>
+                      <p class="text-[14px] font-semibold text-pearl-900 leading-snug">Allow Localized Location Profiling</p>
+                    </div>
+                    <p class="text-xs text-pearl-900/50 leading-relaxed pl-6">
+                      Allows region-specific content, language preferences, and local safety features based on approximate location.
+                    </p>
+                  </div>
+                  <label class="relative inline-flex items-center cursor-pointer flex-shrink-0 mt-0.5">
+                    <input type="checkbox" class="toggle-input sr-only consent-toggle" id="toggle-location" />
+                    <div class="toggle-track w-11 h-6 bg-pearl-200 rounded-full relative">
+                      <div class="toggle-thumb absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-md"></div>
+                    </div>
+                  </label>
+                </div>
+              </div>
+
+              <!-- Legal note -->
+              <div class="flex items-start gap-2.5 px-1 mb-auto">
+                <i data-lucide="info" class="w-4 h-4 text-pearl-900/35 flex-shrink-0 mt-0.5"></i>
+                <p class="text-[11px] text-pearl-900/40 leading-relaxed">
+                  As a parent or legal guardian, you may modify these consents at any time from your child's account settings. Declining optional consents will not prevent account activation.
+                </p>
+              </div>
+
+              <!-- Approve CTA -->
+              <button
+                type="button"
+                id="btn-approve-otp"
+                class="btn-primary w-full py-4 rounded-2xl text-white font-semibold text-[15px] flex items-center justify-center gap-2.5 mt-6 shadow-pearl"
+              >
+                <i data-lucide="badge-check" class="w-5 h-5"></i>
+                Approve &amp; Verify via OTP
+              </button>
+            </div>
+          </section>
+
+          <!-- ═══════════════════════════════════════════
+               SCREEN 3: Success
+               ═══════════════════════════════════════════ -->
+          <section id="screen-3" class="screen flex-col h-full items-center justify-center px-8 bg-pearl-50" aria-label="Consent verified successfully">
+
+            <div class="flex flex-col items-center text-center w-full">
+
+              <!-- Animated checkmark -->
+              <div id="success-check" class="success-check mb-8 opacity-0">
+                <div class="w-24 h-24 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center shadow-lg shadow-emerald-500/25">
+                  <svg viewBox="0 0 24 24" fill="none" class="w-12 h-12" aria-hidden="true">
+                    <path
+                      d="M5 13l4 4L19 7"
+                      stroke="white"
+                      stroke-width="2.5"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                  </svg>
+                </div>
+              </div>
+
+              <h1 id="success-headline" class="text-[22px] font-bold text-pearl-900 leading-tight tracking-tight mb-3 opacity-0">
+                Consent Verified Successfully
+              </h1>
+
+              <p id="success-subtext" class="text-[15px] text-pearl-900/55 leading-relaxed mb-10 opacity-0">
+                Compliance requirements for the DPDP Act 2023 have been fully met. Your child's account is now active and securely configured.
+              </p>
+
+              <!-- Success details -->
+              <div id="success-details" class="w-full bg-white rounded-2xl p-4 shadow-pearl border border-pearl-200/60 mb-8 opacity-0">
+                <div class="flex items-center justify-between py-2 border-b border-pearl-100">
+                  <span class="text-xs text-pearl-900/50">Account</span>
+                  <span class="text-xs font-semibold text-pearl-900">@rohan_sharma_15</span>
+                </div>
+                <div class="flex items-center justify-between py-2 border-b border-pearl-100">
+                  <span class="text-xs text-pearl-900/50">Verified by</span>
+                  <span class="text-xs font-semibold text-pearl-900">Parent OTP</span>
+                </div>
+                <div class="flex items-center justify-between py-2">
+                  <span class="text-xs text-pearl-900/50">Status</span>
+                  <span class="inline-flex items-center gap-1 text-xs font-semibold text-emerald-600">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                    Active &amp; Secure
+                  </span>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                id="btn-return-home"
+                class="opacity-0 w-full py-3.5 rounded-2xl border-2 border-pearl-200 bg-white text-pearl-900 font-semibold text-[15px] shadow-pearl transition-all duration-200 hover:border-pearl-300 hover:shadow-pearl-lg active:scale-[0.98]"
+              >
+                Return to Home
+              </button>
+            </div>
+          </section>
+
+        </div>
+
+        <!-- Home indicator -->
+        <div class="absolute bottom-2 left-1/2 -translate-x-1/2 w-32 h-1 bg-pearl-900/20 rounded-full z-20"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      'use strict';
+
+      /* ── State ── */
+      var currentScreen = 1;
+      var screens = {
+        1: document.getElementById('screen-1'),
+        2: document.getElementById('screen-2'),
+        3: document.getElementById('screen-3'),
+      };
+
+      /* ── Elements ── */
+      var phoneInput = document.getElementById('parent-phone');
+      var phoneWrapper = document.getElementById('phone-wrapper');
+      var phoneError = document.getElementById('phone-error');
+      var btnSendWhatsApp = document.getElementById('btn-send-whatsapp');
+      var btnApproveOtp = document.getElementById('btn-approve-otp');
+      var btnReturnHome = document.getElementById('btn-return-home');
+
+      /* ── Screen navigation ── */
+      function showScreen(target) {
+        if (target === currentScreen) return;
+        var outgoing = screens[currentScreen];
+        var incoming = screens[target];
+        if (!outgoing || !incoming) return;
+
+        outgoing.classList.remove('active');
+        outgoing.classList.add('leaving');
+
+        setTimeout(function () {
+          outgoing.classList.remove('leaving');
+          incoming.classList.add('active');
+          currentScreen = target;
+
+          if (target === 3) {
+            triggerSuccessAnimations();
+          }
+
+          if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+          }
+        }, 280);
+      }
+
+      /* ── Success animations ── */
+      function triggerSuccessAnimations() {
+        var check = document.getElementById('success-check');
+        var headline = document.getElementById('success-headline');
+        var subtext = document.getElementById('success-subtext');
+        var details = document.getElementById('success-details');
+        var homeBtn = document.getElementById('btn-return-home');
+
+        setTimeout(function () {
+          check.style.opacity = '1';
+          check.classList.add('animate');
+        }, 100);
+
+        setTimeout(function () {
+          headline.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+          headline.style.transform = 'translateY(0)';
+          headline.style.opacity = '1';
+        }, 400);
+
+        setTimeout(function () {
+          subtext.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+          subtext.style.transform = 'translateY(0)';
+          subtext.style.opacity = '1';
+        }, 550);
+
+        setTimeout(function () {
+          details.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+          details.style.transform = 'translateY(0)';
+          details.style.opacity = '1';
+        }, 700);
+
+        setTimeout(function () {
+          homeBtn.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+          homeBtn.style.transform = 'translateY(0)';
+          homeBtn.style.opacity = '1';
+        }, 850);
+      }
+
+      /* ── Phone validation (Indian mobile) ── */
+      function isValidIndianMobile(value) {
+        return /^[6-9]\d{9}$/.test(value);
+      }
+
+      function sanitizePhone(value) {
+        return value.replace(/\D/g, '').slice(0, 10);
+      }
+
+      function validatePhone() {
+        var value = phoneInput.value.trim();
+        var valid = isValidIndianMobile(value);
+
+        if (value.length === 0) {
+          phoneError.textContent = '';
+          phoneInput.classList.remove('error');
+          phoneWrapper.classList.remove('border-red-400');
+          btnSendWhatsApp.disabled = true;
+          return false;
+        }
+
+        if (!valid) {
+          phoneError.textContent = 'Enter a valid 10-digit Indian mobile number';
+          phoneInput.classList.add('error');
+          phoneWrapper.classList.add('border-red-400');
+          btnSendWhatsApp.disabled = true;
+          return false;
+        }
+
+        phoneError.textContent = '';
+        phoneInput.classList.remove('error');
+        phoneWrapper.classList.remove('border-red-400');
+        btnSendWhatsApp.disabled = false;
+        return true;
+      }
+
+      phoneInput.addEventListener('input', function () {
+        phoneInput.value = sanitizePhone(phoneInput.value);
+        validatePhone();
+      });
+
+      phoneInput.addEventListener('blur', validatePhone);
+
+      /* ── Button handlers ── */
+      btnSendWhatsApp.addEventListener('click', function () {
+        if (!validatePhone()) return;
+        showScreen(2);
+      });
+
+      btnApproveOtp.addEventListener('click', function () {
+        showScreen(3);
+      });
+
+      btnReturnHome.addEventListener('click', function () {
+        showScreen(1);
+        phoneInput.value = '';
+        validatePhone();
+
+        var check = document.getElementById('success-check');
+        var headline = document.getElementById('success-headline');
+        var subtext = document.getElementById('success-subtext');
+        var details = document.getElementById('success-details');
+        var homeBtn = document.getElementById('btn-return-home');
+
+        [check, headline, subtext, details, homeBtn].forEach(function (el) {
+          el.style.opacity = '0';
+          el.style.transform = 'translateY(8px)';
+        });
+        check.classList.remove('animate');
+      });
+
+      /* ── Init Lucide icons ── */
+      if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+      }
+    })();
+  </script>
+</body>
+</html>
